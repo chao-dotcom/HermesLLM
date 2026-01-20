@@ -1,0 +1,40 @@
+# Data Collection Configuration
+# Configure authors and their content sources for data ingestion
+
+authors:
+  - name: "Author Name 1"
+    sources:
+      - platform: linkedin
+        url: "https://www.linkedin.com/in/username1/"
+      - platform: medium
+        url: "https://medium.com/@username1"
+      - platform: github
+        url: "https://github.com/username1"
+  
+  - name: "Author Name 2"
+    sources:
+      - platform: linkedin
+        url: "https://www.linkedin.com/in/username2/"
+      - platform: medium
+        url: "https://medium.com/@username2"
+      - platform: github
+        url: "https://github.com/username2"
+  
+  # Add more authors as needed
+  # - name: "Author Name 3"
+  #   sources:
+  #     - platform: youtube
+  #       url: "https://www.youtube.com/channel/ID"
+  #     - platform: text_upload
+  #       url: "text_upload://custom-id"
+
+collection:
+  batch_size: 10
+  rate_limit: 1.0  # seconds between requests
+  max_retries: 3
+  timeout: 30
+
+processing:
+  clean_html: true
+  extract_code: true
+  remove_duplicates: true
