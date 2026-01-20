@@ -1,40 +1,40 @@
-# ğŸŒ HermesLLM
+# ?? HermesLLM
 
-HermesLLM is a distributed LLM platform designed to ingest knowledge from heterogeneous sourcesâ€”including GitHub repositories, professional writing platforms, and long-form transcriptsâ€”and deliver educational content that preserves authorial voice while remaining fact-aligned. The system emphasizes traceability, controlled style conditioning, and production-grade deployment through independently scalable training and real-time inference pipelines.
+HermesLLM is a distributed LLM platform designed to ingest knowledge from heterogeneous sources?”including GitHub repositories, professional writing platforms, and long-form transcripts?”and deliver educational content that preserves authorial voice while remaining fact-aligned. The system emphasizes traceability, controlled style conditioning, and production-grade deployment through independently scalable training and real-time inference pipelines.
 
-## ğŸš€ Features
+## ?? Features
 
-- **ğŸ“Š Data Collection**: Multi-source data ingestion from LinkedIn, Medium, GitHub
-- **ğŸ”„ Processing Pipeline**: Cleaning, chunking, and embedding generation
-- **ğŸ¯ RAG System**: Advanced retrieval with query expansion and reranking
-- **ğŸ§  Model Training**: Fine-tuning pipelines with evaluation
-- **â˜ï¸ Cloud Deployment**: AWS SageMaker integration
-- **ğŸ“¡ API Service**: FastAPI-based inference endpoints
-- **ğŸ” Monitoring**: Comprehensive tracking with Opik
-- **âš¡ Orchestration**: ZenML-powered workflow management
+- **?? Data Collection**: Multi-source data ingestion from LinkedIn, Medium, GitHub
+- **?? Processing Pipeline**: Cleaning, chunking, and embedding generation
+- **?¯ RAG System**: Advanced retrieval with query expansion and reranking
+- **?? Model Training**: Fine-tuning pipelines with evaluation
+- **?ï? Cloud Deployment**: AWS SageMaker integration
+- **?“¡ API Service**: FastAPI-based inference endpoints
+- **?? Monitoring**: Comprehensive tracking with Opik
+- **??Orchestration**: ZenML-powered workflow management
 
-## ğŸ“‚ Project Structure
+## ?? Project Structure
 
 ```
-atlas-llm/
-â”œâ”€â”€ atlas/              # Main package
-â”‚   â”œâ”€â”€ core/          # Domain entities
-â”‚   â”œâ”€â”€ collectors/    # Data collection
-â”‚   â”œâ”€â”€ processing/    # Data processing
-â”‚   â”œâ”€â”€ storage/       # Data persistence
-â”‚   â”œâ”€â”€ rag/           # RAG system
-â”‚   â”œâ”€â”€ training/      # Model training
-â”‚   â”œâ”€â”€ inference/     # Model inference
-â”‚   â”œâ”€â”€ cloud/         # Cloud integrations
-â”‚   â””â”€â”€ utils/         # Utilities
-â”œâ”€â”€ workflows/         # Pipeline orchestration
-â”œâ”€â”€ tasks/            # Workflow steps
-â”œâ”€â”€ api/              # API service
-â”œâ”€â”€ cli/              # Command-line interface
-â””â”€â”€ configs/          # Configuration files
+hermes-llm/
+?œâ??€ HERMES/              # Main package
+??  ?œâ??€ core/          # Domain entities
+??  ?œâ??€ collectors/    # Data collection
+??  ?œâ??€ processing/    # Data processing
+??  ?œâ??€ storage/       # Data persistence
+??  ?œâ??€ rag/           # RAG system
+??  ?œâ??€ training/      # Model training
+??  ?œâ??€ inference/     # Model inference
+??  ?œâ??€ cloud/         # Cloud integrations
+??  ?”â??€ utils/         # Utilities
+?œâ??€ workflows/         # Pipeline orchestration
+?œâ??€ tasks/            # Workflow steps
+?œâ??€ api/              # API service
+?œâ??€ cli/              # Command-line interface
+?”â??€ configs/          # Configuration files
 ```
 
-## ğŸ› ï¸ Installation
+## ??ï¸?Installation
 
 ### Prerequisites
 
@@ -57,53 +57,53 @@ cp .env.example .env
 # Edit .env with your credentials
 ```
 
-## ğŸ¯ Quick Start
+## ?¯ Quick Start
 
 ### 1. Data Collection
 
 ```bash
 # Collect data from configured sources
-atlas collect --source all
+HERMES collect --source all
 
 # Collect from specific source
-atlas collect --source linkedin
+HERMES collect --source linkedin
 ```
 
 ### 2. Process Data
 
 ```bash
 # Run feature engineering pipeline
-atlas process --pipeline features
+HERMES process --pipeline features
 
 # Generate embeddings and load to vector DB
-atlas process --pipeline embeddings
+HERMES process --pipeline embeddings
 ```
 
 ### 3. Train Model
 
 ```bash
 # Generate training datasets
-atlas train --generate-datasets
+HERMES train --generate-datasets
 
 # Run training pipeline
-atlas train --run
+HERMES train --run
 ```
 
 ### 4. Deploy & Serve
 
 ```bash
 # Deploy to AWS SageMaker
-atlas deploy --cloud aws
+HERMES deploy --cloud aws
 
 # Run local API server
-atlas serve --port 8000
+HERMES serve --port 8000
 ```
 
 ### 5. Query RAG System
 
 ```bash
 # Interactive RAG query
-atlas query "How to implement RAG systems?"
+HERMES query "How to implement RAG systems?"
 
 # RAG with API
 curl -X POST http://localhost:8000/rag \
@@ -111,7 +111,7 @@ curl -X POST http://localhost:8000/rag \
   -d '{"query": "Your question here"}'
 ```
 
-## ğŸ”§ Configuration
+## ?”§ Configuration
 
 Configuration files are in `configs/`:
 
@@ -129,7 +129,7 @@ COMET_API_KEY=your_key
 
 # Database
 DATABASE_HOST=mongodb://localhost:27017
-DATABASE_NAME=atlas
+DATABASE_NAME=HERMES
 
 # Vector DB
 QDRANT_DATABASE_HOST=localhost
@@ -141,13 +141,13 @@ AWS_ACCESS_KEY=your_key
 AWS_SECRET_KEY=your_secret
 ```
 
-## ğŸ“š Usage Examples
+## ?? Usage Examples
 
 ### Programmatic Usage
 
 ```python
-from atlas.rag import RAGSystem
-from atlas.config import settings
+from HERMES.rag import RAGSystem
+from HERMES.config import settings
 
 # Initialize RAG system
 rag = RAGSystem(config=settings)
@@ -181,40 +181,40 @@ pipeline = DataPipeline([
 pipeline.run()
 ```
 
-## ğŸ§ª Testing
+## ?§ª Testing
 
 ```bash
 # Run all tests
 poetry run pytest
 
 # Run with coverage
-poetry run pytest --cov=atlas
+poetry run pytest --cov=HERMES
 
 # Run specific test
 poetry run pytest tests/unit/test_rag.py
 ```
 
-## ğŸ³ Docker
+## ?³ Docker
 
 ```bash
 # Build image
-docker build -t atlas-llm .
+docker build -t hermes-llm .
 
 # Run with docker-compose
 docker-compose up -d
 
 # Run specific pipeline
-docker-compose run atlas atlas collect --source all
+docker-compose run HERMES HERMES collect --source all
 ```
 
-## ğŸ“Š Monitoring
+## ?? Monitoring
 
 View pipeline runs and metrics in:
 - **ZenML Dashboard**: Pipeline orchestration
 - **Opik**: LLM monitoring and tracing
 - **Comet ML**: Experiment tracking
 
-## ğŸ¤ Contributing
+## ?? Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -222,6 +222,6 @@ View pipeline runs and metrics in:
 4. Run tests and linting
 5. Submit a pull request
 
-## ğŸ“„ License
+## ?? License
 
 MIT License - see LICENSE file for details
