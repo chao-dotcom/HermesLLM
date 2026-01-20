@@ -73,6 +73,8 @@ zenml_local/
 tmp/
 temp/
 *.tmp
+old_src/
 
 # Docker
 .dockerignore
+

@@ -1,5 +1,6 @@
 """Dataset models for training."""
 
+import random
 from enum import Enum
 from typing import Any
 
@@ -26,8 +27,17 @@ class DatasetType(str, Enum):
     COMPLETION = "completion"
 
 
-class InstructSample(BaseModel):
+class InstructDatasetSample(BaseModel):
     """Single instruction-following sample."""
+    
+    instruction: str = Field(description="Input instruction/question")
+    answer: str = Field(description="Expected output/answer")
+    input: str = Field(default="", description="Optional input context")
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class InstructSample(BaseModel):
+    """Single instruction-following sample (legacy compatibility)."""
     
     instruction: str = Field(description="Input instruction/question")
     output: str = Field(description="Expected output/answer")
@@ -35,19 +45,19 @@ class InstructSample(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
-class PreferenceSample(BaseModel):
-    """Single preference learning sample (DPO/RLHF)."""
+class PreferenceDatasetSample(BaseModel):
+    """Single preference learning sample for generation."""
     
     instruction: str = Field(description="Input instruction")
-    chosen: str = Field(description="Preferred response")
-    rejected: str = Field(description="Rejected response")
+    preferred_answer: str = Field(description="Preferred response")
+    rejected_answer: str = Field(description="Rejected response")
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
-class InstructDataset(VectorDocument):
-    """Collection of instruction-following samples."""
+class PreferenceSample(BaseModel):
+    """Single preference learning sample (DPO/RLHF)."""
     
-    samples: list[InstructSample] = Field(default_factory=list)
+    instruction: str = FieDatasetSample | InstructSample] = Field(default_factory=list)
     category: DataCategory
     source: str | None = None
     
@@ -64,14 +74,14 @@ class InstructDataset(VectorDocument):
         if not DATASETS_AVAILABLE:
             raise ImportError("datasets library not installed")
         
-        data = {
-            "instruction": [s.instruction for s in self.samples],
-            "output": [s.output for s in self.samples],
-        }
+        data = {"instruction": [], "output": []}
         
-        # Add context if available
-        if any(s.context for s in self.samples):
-            data["context"] = [s.context or "" for s in self.samples]
+        for sample in self.samples:
+            data["instruction"].append(sample.instruction)
+            if isinstance(sample, InstructDatasetSample):
+                data["output"].append(sample.answer)
+            else:  # InstructSample
+                data["output"].append(sample.output)
         
         return Dataset.from_dict(data)
     
@@ -84,14 +94,90 @@ class InstructDataset(VectorDocument):
                 context=context
             )
         )
-
-
-class PreferenceDataset(VectorDocument):
-    """Collection of preference learning samples."""
     
-    samples: list[PreferenceSample] = Field(default_factory=list)
+    def train_test_split(self, test_size: float = 0.2) -> tuple["InstructDataset", "InstructDataset"]:
+        """
+        Split dataset into train and test sets.
+        
+        Args:
+            test_size: Proportion of samples for test set
+            
+        Returns:
+            Tuple of (train_dataset, test_dataset)
+        """
+        samples = self.samples.copy()
+        random.shuffle(samples)
+        
+        split_idx = int(len(DatasetSample | PreferenceSample] = Field(default_factory=list)
     category: DataCategory
     source: str | None = None
+    
+    class Config:
+        category = DataCategory.PREFERENCE_DATASET
+    
+    @property
+    def num_samples(self) -> int:
+        """Get number of samples in dataset."""
+        return len(self.samples)
+    
+    def to_huggingface(self) -> "Dataset":
+        """Convert to HuggingFace Dataset."""
+        if not DATASETS_AVAILABLE:
+            raise ImportError("datasets library not installed")
+        
+        data = {"instruction": [], "chosen": [], "rejected": []}
+        
+        for sample in self.samples:
+            data["instruction"].append(sample.instruction)
+            if isinstance(sample, PreferenceDatasetSample):
+                data["chosen"].append(sample.preferred_answer)
+                data["rejected"].append(sample.rejected_answer)
+            else:  # PreferenceSample
+                data["chosen"].append(sample.chosen)
+                data["rejected"].append(sample.rejected)
+        
+        return Dataset.from_dict(data)
+    
+    def add_sample(self, instruction: str, chosen: str, rejected: str) -> None:
+        """Add a new sample to the dataset."""
+        self.samples.append(
+            PreferenceSample(
+                instruction=instruction,
+                chosen=chosen,
+                rejected=rejected
+            )
+        )
+    
+    def train_test_split(self, test_size: float = 0.2) -> tuple["PreferenceDataset", "PreferenceDataset"]:
+        """
+        Split dataset into train and test sets.
+        
+        Args:
+            test_size: Proportion of samples for test set
+            
+        Returns:
+            Tuple of (train_dataset, test_dataset)
+        """
+        samples = self.samples.copy()
+        random.shuffle(samples)
+        
+        split_idx = int(len(samples) * (1 - test_size))
+        
+        train_dataset = PreferenceDataset(
+            category=self.category,
+            source=self.source,
+            samples=samples[:split_idx]
+        )
+        
+        test_dataset = PreferenceDataset(
+            category=self.category,
+            source=self.source,
+            samples=samples[split_idx:]
+        )
+        
+        logger.info(f"Split {len(samples)} samples into {len(train_dataset.samples)} train and {len(test_dataset.samples)} test")
+        
+        return train_dataset, test_datasete: str | None = None
     
     class Config:
         category = DataCategory.PREFERENCE_DATASET

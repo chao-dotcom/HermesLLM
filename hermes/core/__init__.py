@@ -3,7 +3,15 @@
 from .documents import ArticleDocument, Document, PostDocument, RepositoryDocument, UserDocument
 from .chunks import ArticleChunk, Chunk, PostChunk, RepositoryChunk
 from .embeddings import EmbeddedArticleChunk, EmbeddedChunk, EmbeddedPostChunk, EmbeddedRepositoryChunk
-from .datasets import InstructDataset, PreferenceDataset
+from .datasets import (
+    InstructDataset, 
+    PreferenceDataset,
+    InstructDatasetSample,
+    PreferenceDatasetSample,
+    InstructSample,
+    PreferenceSample,
+    DatasetType,
+)
 from .enums import ContentType, DataCategory, Platform
 from .queries import Query, EmbeddedQuery
 from .cleaned_documents import CleanedDocument, CleanedArticleDocument, CleanedPostDocument, CleanedRepositoryDocument
@@ -38,6 +46,11 @@ __all__ = [
     # Datasets
     "InstructDataset",
     "PreferenceDataset",
+    "InstructDatasetSample",
+    "PreferenceDatasetSample",
+    "InstructSample",
+    "PreferenceSample",
+    "DatasetType",
     # Enums
     "ContentType",
     "DataCategory",
