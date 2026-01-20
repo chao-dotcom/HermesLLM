@@ -341,7 +341,7 @@ class AccuracyStyleEvaluator(BaseEvaluator):
     ) -> EvaluationMetrics:
         """Evaluate accuracy and style."""
         
-        prompt = f\"\"\"You are an expert judge. Please evaluate the quality of a given answer to an instruction based on two criteria:
+        prompt = f"""You are an expert judge. Please evaluate the quality of a given answer to an instruction based on two criteria:
 
 1. Accuracy: How factually correct is the information presented in the answer? You are a technical expert in this topic.
 2. Style: Is the tone and writing style appropriate for a blog post or social media content? It should use simple but technical words and avoid formal or academic language.
@@ -378,7 +378,7 @@ Provide your evaluation in JSON format:
         "analysis": "..."
     }}
 }}
-\"\"\"
+"""
         
         try:
             completion = self.client.chat.completions.create(

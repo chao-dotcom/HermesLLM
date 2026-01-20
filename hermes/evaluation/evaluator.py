@@ -92,12 +92,12 @@ class BaseEvaluator(ABC):
     
     def evaluate_dataset(
         self,
-        dataset: Dataset | List[Dict[str, Any]],
-        instruction_key: str = \"instruction\",
-        answer_key: str = \"answer\",
+        dataset,
+        instruction_key: str = "instruction",
+        answer_key: str = "answer",
         reference_key: Optional[str] = None,
         **kwargs,
-    ) -> EvaluationResult:
+    ):
         """
         Evaluate a complete dataset.
         
@@ -111,12 +111,18 @@ class BaseEvaluator(ABC):
         Returns:
             Evaluation result
         """
-        logger.info(f\"Evaluating dataset with {len(dataset)} samples\")
+        logger.info(f"Evaluating dataset with {len(dataset)} samples")
         
         start_time = time.time()
         
         # Extract fields
-        if isinstance(dataset, Dataset):
+        try:
+            from datasets import Dataset
+            is_hf_dataset = isinstance(dataset, Dataset)
+        except ImportError:
+            is_hf_dataset = False
+        
+        if is_hf_dataset:
             instructions = dataset[instruction_key]
             answers = dataset[answer_key]
             references = dataset[reference_key] if reference_key and reference_key in dataset.column_names else None
@@ -135,23 +141,12 @@ class BaseEvaluator(ABC):
         
         # Create result
         result = EvaluationResult(
-            model_id=kwargs.get(\"model_id\", \"unknown\"),
-            dataset_name=kwargs.get(\"dataset_name\"),
-            sample_metrics=sample_metrics,
-            evaluation_config={
-                \"evaluator\": self.name,
-                \"instruction_key\": instruction_key,
-                \"answer_key\": answer_key,
-                \"reference_key\": reference_key,
-            },
-            duration_seconds=time.time() - start_time,
+            metrics=sample_metrics,
+            evaluator=self.name,
         )
         
-        # Aggregate metrics
-        result.aggregate_metrics()
-        
-        logger.info(f\"Evaluation complete in {result.duration_seconds:.2f}s\")
-        logger.info(f\"Average overall score: {result.average_overall:.3f}\" if result.average_overall else \"No overall score\")
+        logger.info(f"Evaluation complete in {time.time() - start_time:.2f}s")
+        logger.info(f"Average overall score: {result.average_overall_score:.3f}")
         
         return result
 
@@ -166,7 +161,7 @@ class LLMEvaluator(BaseEvaluator):
         temperature: float = 0.8,
         top_p: float = 0.95,
         max_tokens: int = 2048,
-        name: str = \"llm_evaluator\",
+        name: str = "llm_evaluator",
     ) -> None:
         """
         Initialize LLM evaluator.
@@ -182,12 +177,12 @@ class LLMEvaluator(BaseEvaluator):
         super().__init__(name=name)
         
         if not VLLM_AVAILABLE:
-            raise ImportError(\"vLLM required. Install with: pip install vllm\")
+            raise ImportError("vLLM required. Install with: pip install vllm")
         
         self.model_id = model_id
         self.max_tokens = max_tokens
         
-        logger.info(f\"Loading model: {model_id}\")
+        logger.info(f"Loading model: {model_id}")
         self.llm = LLM(model=model_id, max_model_len=max_model_len)
         
         self.sampling_params = SamplingParams(
@@ -196,7 +191,7 @@ class LLMEvaluator(BaseEvaluator):
             max_tokens=max_tokens,
         )
         
-        logger.info(f\"LLM evaluator initialized: {model_id}\")
+        logger.info(f"LLM evaluator initialized: {model_id}")
     
     def generate_answers(
         self,
