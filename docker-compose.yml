@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: atlas-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: atlas
+      MONGO_INITDB_ROOT_PASSWORD: atlas
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - atlas-network
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: atlas-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - atlas-network
+
+  atlas-app:
+    build: .
+    container_name: atlas-app
+    environment:
+      - DATABASE_HOST=mongodb://atlas:atlas@mongodb:27017
+      - DATABASE_NAME=atlas_db
+      - QDRANT_DATABASE_HOST=qdrant
+      - QDRANT_DATABASE_PORT=6333
+    volumes:
+      - ./data:/app/data
+      - ./configs:/app/configs
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+      - qdrant
+    networks:
+      - atlas-network
+    command: atlas serve --host 0.0.0.0 --port 8000
+
+volumes:
+  mongodb_data:
+  qdrant_data:
+
+networks:
+  atlas-network:
+    driver: bridge
