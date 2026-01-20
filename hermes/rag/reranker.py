@@ -12,15 +12,18 @@ except ImportError:
 
 from hermes.core import Query
 from hermes.core.chunks import Chunk
+from hermes.models import CrossEncoderModelSingleton
 
 
 class CrossEncoderReranker:
-    """Reranker using cross-encoder models."""
+    """Reranker using cross-encoder models with singleton pattern."""
     
     def __init__(
         self,
         model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
-        top_k: int = 3
+        top_k: int = 3,
+        device: str = "cpu",
+        use_singleton: bool = True,
     ) -> None:
         """
         Initialize reranker.
@@ -28,6 +31,8 @@ class CrossEncoderReranker:
         Args:
             model_name: Name of cross-encoder model
             top_k: Number of top chunks to keep after reranking
+            device: Device to run model on ('cpu', 'cuda', 'mps')
+            use_singleton: Whether to use singleton pattern (recommended)
         """
         if not CROSSENCODER_AVAILABLE:
             raise ImportError(
@@ -37,8 +42,15 @@ class CrossEncoderReranker:
         
         self.model_name = model_name
         self.top_k = top_k
-        logger.info(f"Loading reranker model: {model_name}")
-        self.model = CrossEncoder(model_name)
+        self.device = device
+        self.use_singleton = use_singleton
+        
+        if use_singleton:
+            logger.info(f"Using CrossEncoderModelSingleton for {model_name}")
+            self.model = CrossEncoderModelSingleton(model_id=model_name, device=device)
+        else:
+            logger.info(f"Loading reranker model: {model_name}")
+            self.model = CrossEncoder(model_name, device=device)
     
     def rerank(self, query: Query, chunks: List[Chunk]) -> List[Chunk]:
         """
@@ -57,10 +69,13 @@ class CrossEncoderReranker:
         logger.info(f"Reranking {len(chunks)} chunks")
         
         # Prepare pairs for cross-encoder
-        pairs = [[query.content, chunk.content] for chunk in chunks]
+        pairs = [(query.content, chunk.content) for chunk in chunks]
         
         # Get relevance scores
-        scores = self.model.predict(pairs)
+        if self.use_singleton:
+            scores = self.model(pairs, to_list=False)
+        else:
+            scores = self.model.predict(pairs)
         
         # Sort by score
         ranked_indices = scores.argsort()[::-1]
