@@ -223,10 +223,10 @@ class LLMEvaluator(BaseEvaluator):
         reference: Optional[str] = None,
         **kwargs,
     ) -> EvaluationMetrics:
-        \"\"\"
+        """
         Evaluate using LLM (not typical - usually used for generation).
         This is a placeholder.
-        \"\"\"
+        """
         # For LLM evaluator, we typically just generate answers
         # Actual evaluation would use another evaluator
         return EvaluationMetrics(
@@ -236,22 +236,22 @@ class LLMEvaluator(BaseEvaluator):
 
 
 class BenchmarkEvaluator(BaseEvaluator):
-    \"\"\"Evaluator for standard benchmarks (MMLU, HellaSwag, etc.).\"\"\"
+    """Evaluator for standard benchmarks (MMLU, HellaSwag, etc.)."""
     
     def __init__(
         self,
         benchmark_name: str,
         model_id: Optional[str] = None,
-        name: str = \"benchmark_evaluator\",
+        name: str = "benchmark_evaluator",
     ) -> None:
-        \"\"\"
+        """
         Initialize benchmark evaluator.
         
         Args:
             benchmark_name: Name of benchmark (mmlu, hellaswag, etc.)
             model_id: Model to evaluate (optional)
             name: Evaluator name
-        \"\"\"
+        """
         super().__init__(name=name)
         self.benchmark_name = benchmark_name
         self.model_id = model_id
@@ -263,7 +263,7 @@ class BenchmarkEvaluator(BaseEvaluator):
         reference: Optional[str] = None,
         **kwargs,
     ) -> EvaluationMetrics:
-        \"\"\"Evaluate single sample (typically for multiple choice).\"\"\"
+        """Evaluate single sample (typically for multiple choice)."""
         # Extract choice from answer
         predicted_choice = self._extract_choice(answer)
         correct_choice = reference
@@ -279,17 +279,17 @@ class BenchmarkEvaluator(BaseEvaluator):
         )
     
     def _extract_choice(self, answer: str) -> str:
-        \"\"\"Extract choice (A, B, C, D) from answer.\"\"\"
+        """Extract choice (A, B, C, D) from answer."""
         answer = answer.strip().upper()
         
         # Check for direct choice
-        for choice in [\"A\", \"B\", \"C\", \"D\", \"E\"]:
+        for choice in ["A", "B", "C", "D", "E"]:
             if answer.startswith(choice):
                 return choice
         
         # Check for choice in parentheses
-        for choice in [\"A\", \"B\", \"C\", \"D\", \"E\"]:
-            if f\"({choice})\" in answer or f\"[{choice}]\" in answer:
+        for choice in ["A", "B", "C", "D", "E"]:
+            if f"({choice})" in answer or f"[{choice}]" in answer:
                 return choice
         
-        return answer[0] if answer else \"\"
+        return answer[0] if answer else ""
