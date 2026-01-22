@@ -252,5 +252,221 @@ def status():
         click.echo(f"??Qdrant: {e}")
 
 
+@cli.command()
+@click.option("--collection", "-c", type=str, help="Specific collection to export")
+@click.option("--output-dir", "-o", type=click.Path(), default="data/exports", help="Output directory")
+@click.option("--format", "-f", type=click.Choice(["json", "csv", "parquet"]), default="json", help="Export format")
+@click.option("--limit", "-l", type=int, help="Limit number of documents")
+def export(collection: str | None, output_dir: str, format: str, limit: int | None):
+    """
+    Export data warehouse to files.
+    
+    Example:
+        hermes export --collection raw_documents --format json
+        hermes export --output-dir backups/2024-01 --format parquet
+    """
+    from hermes.storage.warehouse import DataWarehouseExporter
+    
+    logger.info(f"Exporting data warehouse to {output_dir}")
+    
+    try:
+        exporter = DataWarehouseExporter()
+        
+        if collection:
+            # Export single collection
+            output_file = f"{output_dir}/{collection}.{format}"
+            result = exporter.export_collection(
+                collection_name=collection,
+                output_file=output_file,
+                file_format=format,
+                limit=limit,
+            )
+            click.echo(f"??Exported collection '{collection}' to {result}")
+        else:
+            # Export all collections
+            results = exporter.export_all_collections(
+                output_dir=output_dir,
+                file_format=format,
+            )
+            click.echo(f"\n??Exported {len(results)} collections:")
+            for coll_name, file_path in results.items():
+                click.echo(f"  {coll_name}: {file_path}")
+        
+    except Exception as e:
+        logger.error(f"Export failed: {e}")
+        click.echo(f"??Export failed: {e}", err=True)
+
+
+@cli.command()
+@click.option("--collection", "-c", type=str, help="Target collection name")
+@click.option("--input-file", "-i", type=click.Path(exists=True), help="Input file path")
+@click.option("--input-dir", "-d", type=click.Path(exists=True), help="Input directory (imports all files)")
+@click.option("--format", "-f", type=click.Choice(["json", "csv", "parquet"]), default="json", help="Import format")
+@click.option("--batch-size", type=int, default=1000, help="Batch size for insertion")
+def import_data(collection: str | None, input_file: str | None, input_dir: str | None, format: str, batch_size: int):
+    """
+    Import data into data warehouse from files.
+    
+    Example:
+        hermes import-data --collection raw_documents --input-file data/raw.json
+        hermes import-data --input-dir backups/2024-01 --format json
+    """
+    from hermes.storage.warehouse import DataWarehouseImporter
+    
+    if not input_file and not input_dir:
+        click.echo("Error: Specify either --input-file or --input-dir", err=True)
+        return
+    
+    logger.info("Starting data import")
+    
+    try:
+        importer = DataWarehouseImporter()
+        
+        if input_file:
+            # Import single file
+            if not collection:
+                # Derive collection name from filename
+                from pathlib import Path
+                collection = Path(input_file).stem
+            
+            count = importer.import_collection(
+                collection_name=collection,
+                input_file=input_file,
+                file_format=format,
+                batch_size=batch_size,
+            )
+            click.echo(f"??Imported {count} documents into '{collection}'")
+        
+        elif input_dir:
+            # Import all files from directory
+            results = importer.import_all_collections(
+                input_dir=input_dir,
+                file_format=format,
+            )
+            click.echo(f"\n??Imported from {len(results)} collections:")
+            for coll_name, count in results.items():
+                click.echo(f"  {coll_name}: {count} documents")
+        
+    except Exception as e:
+        logger.error(f"Import failed: {e}")
+        click.echo(f"??Import failed: {e}", err=True)
+
+
+@cli.command()
+@click.option("--backup-dir", "-b", type=click.Path(), required=True, help="Backup directory")
+@click.option("--format", "-f", type=click.Choice(["json", "csv", "parquet"]), default="json", help="Backup format")
+@click.option("--collections", "-c", multiple=True, help="Specific collections to backup")
+def backup(backup_dir: str, format: str, collections: tuple):
+    """
+    Create a backup of the data warehouse.
+    
+    Example:
+        hermes backup --backup-dir backups/2024-01-21 --format json
+        hermes backup --backup-dir backups/latest --collections raw_documents cleaned_documents
+    """
+    from hermes.storage.warehouse import DataWarehouseManager
+    
+    logger.info(f"Creating backup to {backup_dir}")
+    
+    try:
+        manager = DataWarehouseManager()
+        
+        collections_list = list(collections) if collections else None
+        
+        results = manager.backup(
+            backup_dir=backup_dir,
+            file_format=format,
+            collections=collections_list,
+        )
+        
+        click.echo(f"\n??Backup complete:")
+        click.echo(f"  Location: {backup_dir}")
+        click.echo(f"  Collections: {len(results)}")
+        for coll_name, file_path in results.items():
+            click.echo(f"    {coll_name}: {file_path}")
+        
+    except Exception as e:
+        logger.error(f"Backup failed: {e}")
+        click.echo(f"??Backup failed: {e}", err=True)
+
+
+@cli.command()
+@click.option("--backup-dir", "-b", type=click.Path(exists=True), required=True, help="Backup directory")
+@click.option("--format", "-f", type=click.Choice(["json", "csv", "parquet"]), default="json", help="Backup format")
+@click.option("--confirm", is_flag=True, help="Skip confirmation prompt")
+def restore(backup_dir: str, format: str, confirm: bool):
+    """
+    Restore data warehouse from a backup.
+    
+    Example:
+        hermes restore --backup-dir backups/2024-01-21 --confirm
+    """
+    from hermes.storage.warehouse import DataWarehouseManager
+    
+    if not confirm:
+        click.confirm(
+            f"This will restore data from {backup_dir}. Existing data may be overwritten. Continue?",
+            abort=True,
+        )
+    
+    logger.info(f"Restoring from backup: {backup_dir}")
+    
+    try:
+        manager = DataWarehouseManager()
+        
+        results = manager.restore(
+            backup_dir=backup_dir,
+            file_format=format,
+        )
+        
+        total_docs = sum(results.values())
+        
+        click.echo(f"\n??Restore complete:")
+        click.echo(f"  Total documents: {total_docs}")
+        click.echo(f"  Collections restored: {len(results)}")
+        for coll_name, count in results.items():
+            click.echo(f"    {coll_name}: {count} documents")
+        
+    except Exception as e:
+        logger.error(f"Restore failed: {e}")
+        click.echo(f"??Restore failed: {e}", err=True)
+
+
+@cli.command()
+@click.option("--source-dir", "-s", type=click.Path(exists=True), required=True, help="Source directory")
+@click.option("--target-dir", "-t", type=click.Path(), required=True, help="Target directory")
+@click.option("--source-format", type=click.Choice(["json", "csv", "parquet"]), default="json", help="Source format")
+@click.option("--target-format", type=click.Choice(["json", "csv", "parquet"]), required=True, help="Target format")
+def migrate(source_dir: str, target_dir: str, source_format: str, target_format: str):
+    """
+    Migrate data between file formats.
+    
+    Example:
+        hermes migrate --source-dir data/json --target-dir data/parquet --source-format json --target-format parquet
+    """
+    from hermes.storage.warehouse import DataWarehouseManager
+    
+    logger.info(f"Migrating data from {source_format} to {target_format}")
+    
+    try:
+        manager = DataWarehouseManager()
+        
+        results = manager.migrate(
+            source_dir=source_dir,
+            target_dir=target_dir,
+            source_format=source_format,
+            target_format=target_format,
+        )
+        
+        click.echo(f"\n??Migration complete:")
+        click.echo(f"  Files migrated: {len(results)}")
+        for source_file, target_file in results.items():
+            click.echo(f"    {source_file} → {target_file}")
+        
+    except Exception as e:
+        logger.error(f"Migration failed: {e}")
+        click.echo(f"??Migration failed: {e}", err=True)
+
+
 if __name__ == "__main__":
     cli()
