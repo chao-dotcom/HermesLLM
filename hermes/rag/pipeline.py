@@ -17,6 +17,8 @@ from hermes.rag.retriever import VectorRetriever
 from hermes.rag.reranker import CrossEncoderReranker
 from hermes.rag.query_expander import LLMQueryExpander, MultiQueryExpander
 from hermes.rag.self_query import SelfQueryExtractor, AuthorExtractor, MetadataEnricher
+from hermes.monitoring.decorators import monitor_rag_query, monitor_inference, compute_tokens
+from hermes.monitoring.opik_utils import log_metrics, log_model_info, is_opik_enabled
 
 
 class RAGPipeline:
@@ -61,6 +63,7 @@ class RAGPipeline:
             logger.warning("OpenAI not available. Install with: pip install openai")
             self.client = None
     
+    @monitor_rag_query(name="rag_pipeline_query", tags=["rag", "production"])
     def query(
         self,
         query: str | Query,
@@ -154,9 +157,28 @@ class RAGPipeline:
             context_chunks=reranked_chunks,
             system_prompt=system_prompt
         )
+        # Log RAG-specific metrics to Opik
+        if is_opik_enabled():
+            context_text = "\n\n".join([chunk.content for chunk in reranked_chunks])
+            log_metrics({
+                "num_expanded_queries": len(queries),
+                "num_unique_chunks_retrieved": len(unique_chunks),
+                "num_reranked_chunks": len(reranked_chunks),
+                "used_query_expansion": use_query_expansion,
+                "used_self_query": use_self_query,
+                "used_author_extraction": use_author_extraction,
+            })
         
+        # Return as dict for monitoring decorator
+        return {
+            "answer": response,
+            "documents": reranked_chunks,
+            "context": context_text,
+            "query": query.content
+        }
         return response
     
+    @monitor_inference(name="llm_generation", tags=["llm", "generation"])
     def _generate_response(
         self,
         query: Query,
@@ -200,6 +222,14 @@ Question: {query.content}
 Please provide a helpful answer based on the context above."""
         
         logger.info("Generating LLM response")
+        
+        # Log model info to Opik
+        if is_opik_enabled():
+            log_model_info(
+                model_id=self.llm_model,
+                temperature=0.7,
+                max_tokens=512,
+            )
         
         try:
             response = self.client.chat.completions.create(
