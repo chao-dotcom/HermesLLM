@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "atlas-llm"
+name = "hermesllm"
 version = "1.0.0"
 description = "Production-ready LLM system with RAG, training, and deployment capabilities"
 authors = ["Your Name <you@example.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "atlas"}]
+packages = [{include = "hermes"}]
 
 [tool.poetry.dependencies]
 python = "~3.11"
@@ -70,7 +70,12 @@ kubernetes = "^30.1.0"
 sagemaker-huggingface-inference-toolkit = "^2.4.0"
 
 [tool.poetry.scripts]
-atlas = "atlas.cli.commands:cli"
+hermes = "hermes.cli:cli"
+hermes-run = "hermes.tools.run:cli"
+hermes-warehouse = "hermes.tools.data_warehouse:cli"
+hermes-rag = "hermes.tools.rag_demo:cli"
+hermes-serve = "hermes.tools.ml_service:main"
+hermes-settings = "hermes.tools.settings_manager:cli"
 
 [build-system]
 requires = ["poetry-core"]
@@ -105,4 +110,4 @@ indent-style = "space"
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
-addopts = "-v --cov=atlas --cov-report=term-missing"
+addopts = "-v --cov=hermes --cov-report=term-missing"

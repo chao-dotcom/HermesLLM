@@ -1,4 +1,4 @@
-"""Command-line interface for Atlas LLM."""
+"""Command-line interface for HermesLLM."""
 
 import click
 from loguru import logger
@@ -11,7 +11,15 @@ from hermes.utils.logging import setup_logging
 @click.group()
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
 def cli(verbose: bool):
-    """Atlas LLM - Production-ready LLM system with RAG capabilities."""
+    """
+    HermesLLM - Production-ready LLM system with RAG capabilities.
+    
+    Use the comprehensive tools for advanced workflows:
+    - 'hermes-run' for pipeline orchestration
+    - 'hermes-warehouse' for data management
+    - 'hermes-rag' for RAG demonstrations
+    - 'hermes-serve' for ML inference service
+    """
     level = "DEBUG" if verbose else "INFO"
     setup_logging(level=level)
 

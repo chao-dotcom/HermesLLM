@@ -1,15 +1,17 @@
 # ?? HermesLLM
 
-HermesLLM is a distributed LLM platform designed to ingest knowledge from heterogeneous sources?îincluding GitHub repositories, professional writing platforms, and long-form transcripts?îand deliver educational content that preserves authorial voice while remaining fact-aligned. The system emphasizes traceability, controlled style conditioning, and production-grade deployment through independently scalable training and real-time inference pipelines.
+HermesLLM is a distributed LLM platform designed to ingest knowledge from heterogeneous sources?ÔøΩincluding GitHub repositories, professional writing platforms, and long-form transcripts?ÔøΩand deliver educational content that preserves authorial voice while remaining fact-aligned. The system emphasizes traceability, controlled style conditioning, and production-grade deployment through independently scalable training and real-time inference pipelines.
 
 ## ?? Features
 
 - **?? Data Collection**: Multi-source data ingestion from LinkedIn, Medium, GitHub
 - **?? Processing Pipeline**: Cleaning, chunking, and embedding generation
-- **?éØ RAG System**: Advanced retrieval with query expansion and reranking
-- **?? Model Training**: Fine-tuning pipelines with evaluation
-- **?ÅÔ? Cloud Deployment**: AWS SageMaker integration
-- **?ì° API Service**: FastAPI-based inference endpoints
+- **?ÔøΩÔøΩ RAG System**: Advanced retrieval with query expansion and reranking
+- **?? AI-Powered Dataset Generation**: Automated instruction and preference dataset creation
+- **?? Advanced Training**: LoRA/DPO fine-tuning with 4-bit quantization and Unsloth
+- **?? Model Training**: Production-grade SFT and DPO training pipelines
+- **‚òÅÔ∏è AWS SageMaker**: Complete deployment, inference, and endpoint management
+- **?ÔøΩÔøΩ API Service**: FastAPI-based inference endpoints
 - **?? Monitoring**: Comprehensive tracking with Opik
 - **??Orchestration**: ZenML-powered workflow management
 
@@ -17,24 +19,25 @@ HermesLLM is a distributed LLM platform designed to ingest knowledge from hetero
 
 ```
 hermes-llm/
-?ú‚??Ä HERMES/              # Main package
-??  ?ú‚??Ä core/          # Domain entities
-??  ?ú‚??Ä collectors/    # Data collection
-??  ?ú‚??Ä processing/    # Data processing
-??  ?ú‚??Ä storage/       # Data persistence
-??  ?ú‚??Ä rag/           # RAG system
-??  ?ú‚??Ä training/      # Model training
-??  ?ú‚??Ä inference/     # Model inference
-??  ?ú‚??Ä cloud/         # Cloud integrations
-??  ?î‚??Ä utils/         # Utilities
-?ú‚??Ä workflows/         # Pipeline orchestration
-?ú‚??Ä tasks/            # Workflow steps
-?ú‚??Ä api/              # API service
-?ú‚??Ä cli/              # Command-line interface
-?î‚??Ä configs/          # Configuration files
+?ÔøΩÔøΩ??ÔøΩ hermes/              # Main package
+??  ?ÔøΩÔøΩ??ÔøΩ core/          # Domain entities
+??  ?ÔøΩÔøΩ??ÔøΩ collectors/    # Data collection
+??  ?ÔøΩÔøΩ??ÔøΩ processing/    # Data processing
+??  ?ÔøΩÔøΩ??ÔøΩ storage/       # Data persistence
+??  ?ÔøΩÔøΩ??ÔøΩ datasets/      # AI dataset generation
+??  ?ÔøΩÔøΩ??ÔøΩ rag/           # RAG system
+??  ?ÔøΩÔøΩ??ÔøΩ training/      # Model training (basic + advanced)
+??  ?ÔøΩÔøΩ??ÔøΩ inference/     # Model inference
+??  ?ÔøΩÔøΩ??ÔøΩ api/           # API service
+??  ?ÔøΩÔøΩ??ÔøΩ utils/         # Utilities
+?ÔøΩÔøΩ??ÔøΩ workflows/         # Pipeline orchestration
+?ÔøΩÔøΩ??ÔøΩ tasks/            # Workflow steps (collection, datasets, training)
+?ÔøΩÔøΩ??ÔøΩ examples/         # Usage examples
+?ÔøΩÔøΩ??ÔøΩ docs/             # Documentation
+?ÔøΩÔøΩ??ÔøΩ configs/          # Configuration files
 ```
 
-## ??Ô∏?Installation
+## ??ÔøΩ?Installation
 
 ### Prerequisites
 
@@ -57,7 +60,7 @@ cp .env.example .env
 # Edit .env with your credentials
 ```
 
-## ?éØ Quick Start
+## ?ÔøΩÔøΩ Quick Start
 
 ### 1. Data Collection
 
@@ -79,27 +82,58 @@ HERMES process --pipeline features
 HERMES process --pipeline embeddings
 ```
 
-### 3. Train Model
+### 3. Generate Training Datasets
 
 ```bash
-# Generate training datasets
-HERMES train --generate-datasets
+# Generate instruction dataset from your documents
+python examples/generate_datasets_example.py
 
-# Run training pipeline
-HERMES train --run
+# Or use the pipeline directly
+from workflows.pipelines import generate_datasets_pipeline
+
+generate_datasets_pipeline(
+    5ataset_name="my-instruction-dataset",
+    num_samples=100,
+)
+```
+
+### 4. Train Model
+
+```bash
+# Supervised Fine-Tuning with LoRA
+python examples/advanced_training_example.py
+
+# Or use the training pipeline
+from workflows.pipelines.training import sft_training_pipeline
+
+sft_training_pipeline(
+    dataset_path="username/my-instruction-dataset",
+    model_name="meta-llama/Llama-3.2-1B",
+    output_dir="models/my-sft-model",
+)
 ```
 
 ### 4. Deploy & Serve
 
 ```bash
 # Deploy to AWS SageMaker
-HERMES deploy --cloud aws
+python examples/sagemaker_deployment_example.py
+
+# Or use the deployment pipeline
+from workflows.pipelines.deployment import sagemaker_deployment_pipeline
+
+sagemaker_deployment_pipeline(
+    model_path="models/my-sft-model",
+    model_name="my-llm-model",
+    role_arn="arn:aws:iam::123456789012:role/SageMakerRole",
+    s3_bucket="my-sagemaker-bucket",
+)
 
 # Run local API server
-HERMES serve --port 8000
+python -m hermes.api.app
 ```
 
-### 5. Query RAG System
+### 6. Query RAG System
 
 ```bash
 # Interactive RAG query
@@ -111,7 +145,7 @@ curl -X POST http://localhost:8000/rag \
   -d '{"query": "Your question here"}'
 ```
 
-## ?îß Configuration
+## ?ÔøΩÔøΩ Configuration
 
 Configuration files are in `configs/`:
 
@@ -143,24 +177,104 @@ AWS_SECRET_KEY=your_secret
 
 ## ?? Usage Examples
 
-### Programmatic Usage
+### RAG System
 
 ```python
-from HERMES.rag import RAGSystem
-from HERMES.config import settings
+from hermes.rag import RAGPipeline
 
 # Initialize RAG system
-rag = RAGSystem(config=settings)
+rag = RAGPipeline()
 
 # Query
-result = rag.query(
-    "Explain vector databases",
-    k=5,
-    use_reranking=True
+result = rag.generate_answer(
+    query="Explain vector databases",
+    top_k=5,
 )
 
-print(result.answer)
-print(result.sources)
+print(result["answer"])
+print(result["context"])
+```
+
+### Generate Training Datasets
+
+```pythonTraining Pipeline
+
+```python
+from zenml import pipeline
+from tasks.training import load_training_dataset, train_sft, push_model_to_hub
+
+@pipeline
+def my_training_pipeline(dataset_path: str, hub_repo_id: str):
+    # Load dataset
+    dataset = load_training_dataset(dataset_path=dataset_path)
+    
+    # Train model
+    metrics = train_sft(
+        train_dataset=dataset["train"],
+        eval_dataset=dataset["test"],
+        model_name="meta-llama/Llama-3.2-1B",
+        output_dir="models/my-model",
+    )
+    
+    # Push to HuggingFace Hub
+    push_model_to_hub(
+        model_path="models/my-model",
+        repo_id=hub_repo_id,
+    )
+
+# Run pipeline
+my_training_pipeline(
+    dataset_path="username/my-dataset",
+    hub_repo_id="username/my-finetuned-model",
+erator.generate_dataset(
+    documents=documents,
+    num_samples=100,
+)
+
+# Save to HuggingFace
+dataset.push_to_hub("username/my-dataset")
+```
+
+### Advanced Training
+
+```python
+from hermes.training.advanced import TrainingConfig, SFTTrainer
+
+# Configure training
+config = TrainingConfig(
+    model_name="meta-llama/Llama-3.2-1B",
+    output_dir="models/my-model",
+    dataset_path="username/my-dataset",
+    load_in_4bit=True,
+    num_train_epochs=3,
+)
+
+# Train with LoRA
+trainer = SFTTrainer(config)
+metrics = trainer.train()
+```
+
+### SageMaker Deployment
+
+```python
+from hermes.deployment import SageMakerConfig, SageMakerDeployer, SageMakerInferenceClient
+
+# Deploy model to SageMaker
+config = SageMakerConfig(
+    region="us-east-1",
+    role_arn="arn:aws:iam::123456789012:role/SageMakerRole",
+    model_path="models/my-model",
+    model_name="my-llm",
+    instance_type="ml.g5.2xlarge",
+    s3_bucket="my-sagemaker-bucket",
+)
+
+deployer = SageMakerDeployer(config)
+endpoint = deployer.deploy(wait=True)
+
+# Invoke endpoint
+client = SageMakerInferenceClient(endpoint_name=endpoint)
+response = client.generate("Explain machine learning:")
 ```
 
 ### Custom Pipeline
@@ -181,7 +295,7 @@ pipeline = DataPipeline([
 pipeline.run()
 ```
 
-## ?ß™ Testing
+## ?ÔøΩÔøΩ Testing
 
 ```bash
 # Run all tests
@@ -194,7 +308,7 @@ poetry run pytest --cov=HERMES
 poetry run pytest tests/unit/test_rag.py
 ```
 
-## ?ê≥ Docker
+## ?ÔøΩÔøΩ Docker
 
 ```bash
 # Build image
