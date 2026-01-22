@@ -78,3 +78,5 @@ old_src/
 # Docker
 .dockerignore
 
+# Internal Documentation
+docs/
