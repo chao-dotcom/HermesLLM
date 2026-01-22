@@ -1,0 +1,63 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.5
+    hooks:
+      - id: ruff
+        name: Ruff Linter
+        args: [--fix]
+      - id: ruff-format
+        name: Ruff Formatter
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.2
+    hooks:
+      - id: gitleaks
+        name: Gitleaks Security Scan
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+      - id: end-of-file-fixer
+        name: Fix End of Files
+      - id: check-yaml
+        name: Check YAML Syntax
+        args: [--safe]
+      - id: check-added-large-files
+        name: Check for Large Files
+        args: [--maxkb=1000]
+      - id: check-merge-conflict
+        name: Check for Merge Conflicts
+      - id: check-toml
+        name: Check TOML Syntax
+      - id: check-json
+        name: Check JSON Syntax
+      - id: detect-private-key
+        name: Detect Private Keys
+
+  - repo: https://github.com/python-poetry/poetry
+    rev: 1.8.0
+    hooks:
+      - id: poetry-check
+        name: Poetry Check
+      - id: poetry-lock
+        name: Poetry Lock Check
+        args: [--check]
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.6
+    hooks:
+      - id: codespell
+        name: Check Spelling
+        args: [--ignore-words-list=crate,nd,strack,ans,hist]
+
+  - repo: local
+    hooks:
+      - id: validate-settings
+        name: Validate HermesLLM Settings
+        entry: poetry run hermes-settings validate
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: ^(hermes/config\.py|\.env.*|configs/.*\.yaml)$

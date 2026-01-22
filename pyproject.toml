@@ -110,4 +110,121 @@ indent-style = "space"
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
-addopts = "-v --cov=hermes --cov-report=term-missing"
+addopts = "-v --cov=hermes --cov-report=term-missing --cov-report=xml"
+
+# Poe the Poet tasks
+[tool.poe.tasks]
+# QA Tasks
+lint-check = "ruff check ."
+lint-fix = "ruff check --fix ."
+format-check = "ruff format --check ."
+format-fix = "ruff format ."
+gitleaks-check = "docker run -v .:/src zricethezav/gitleaks:latest dir /src"
+lint-check-docker = "docker run --rm -i hadolint/hadolint < Dockerfile"
+
+# Testing
+test = "pytest tests/"
+test-cov = "pytest tests/ --cov=hermes --cov-report=html"
+test-verbose = "pytest tests/ -vv"
+
+# Pipeline Execution
+run-end-to-end = "python -m hermes.tools.run end-to-end"
+run-collect = "python -m hermes.tools.run collect"
+run-process = "python -m hermes.tools.run process"
+run-generate-dataset = "python -m hermes.tools.run generate-dataset"
+run-train = "python -m hermes.tools.run train"
+run-evaluate = "python -m hermes.tools.run evaluate"
+
+# Data Warehouse
+export-data-warehouse = "python -m hermes.tools.data_warehouse export --format json"
+import-data-warehouse = "python -m hermes.tools.data_warehouse import --format json"
+list-collections = "python -m hermes.tools.data_warehouse list"
+clear-collection = "python -m hermes.tools.data_warehouse clear"
+
+# Settings Management
+export-settings = "hermes-settings export-zenml"
+import-settings = "hermes-settings import-zenml"
+validate-settings = "hermes-settings validate"
+show-settings = "hermes-settings show"
+
+# Inference & RAG
+run-inference-service = "uvicorn hermes.tools.ml_service:app --host 0.0.0.0 --port 8000 --reload"
+call-rag = "hermes-rag query"
+rag-demo = "hermes-rag demo"
+
+# Infrastructure - Local
+local-docker-up = "docker compose up -d"
+local-docker-down = "docker compose down"
+local-zenml-up = "zenml login --local"
+local-zenml-down = "zenml logout --local"
+
+[tool.poe.tasks.local-infrastructure-up]
+sequence = [
+    "local-docker-up",
+    "local-zenml-up",
+]
+ignore_fail = "return_non_zero"
+
+[tool.poe.tasks.local-infrastructure-down]
+sequence = [
+    "local-docker-down",
+    "local-zenml-down",
+]
+ignore_fail = "return_non_zero"
+
+# Infrastructure - ZenML Stacks
+[tool.poe.tasks.set-local-stack]
+cmd = "zenml stack set default"
+
+[tool.poe.tasks.set-aws-stack]
+cmd = "zenml stack set aws-stack"
+
+# Infrastructure - AWS SageMaker
+[tool.poe.tasks.create-sagemaker-role]
+shell = "python -m hermes.infrastructure.create_sagemaker_role"
+
+[tool.poe.tasks.deploy-inference-endpoint]
+shell = "python -m hermes.infrastructure.deploy_endpoint"
+
+[tool.poe.tasks.delete-inference-endpoint]
+shell = "python -m hermes.infrastructure.delete_endpoint"
+
+# Docker Tasks
+[tool.poe.tasks.build-docker]
+cmd = "docker buildx build --platform linux/amd64 -t hermesllm -f Dockerfile ."
+
+[tool.poe.tasks.run-docker-pipeline]
+cmd = "docker run --rm --network host --shm-size=2g --env-file .env hermesllm poetry poe run-end-to-end"
+
+[tool.poe.tasks.bash-docker]
+cmd = "docker run --rm -it --network host --env-file .env hermesllm bash"
+
+# Configuration Validation
+[tool.poe.tasks.validate-configs]
+script = "hermes.utils.validators:validate_all_configs"
+
+# Documentation
+[tool.poe.tasks.build-docs]
+shell = "mkdocs build"
+
+[tool.poe.tasks.serve-docs]
+shell = "mkdocs serve"
+
+# Pre-commit
+[tool.poe.tasks.pre-commit-install]
+cmd = "pre-commit install"
+
+[tool.poe.tasks.pre-commit-run]
+cmd = "pre-commit run --all-files"
+
+# Clean Tasks
+[tool.poe.tasks.clean]
+sequence = [
+    { cmd = "rm -rf dist/" },
+    { cmd = "rm -rf .pytest_cache/" },
+    { cmd = "rm -rf .ruff_cache/" },
+    { cmd = "rm -rf htmlcov/" },
+    { cmd = "rm -rf .coverage" },
+    { cmd = "find . -type d -name __pycache__ -exec rm -rf {} + || true" },
+]
+ignore_fail = "return_non_zero"
