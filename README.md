@@ -1,6 +1,7 @@
-![Banner](banner.png)
-
 <div align="center">
+  
+![HermesLLM](banner.png)
+
   <h1>🚀 HermesLLM</h1>
   <p><i>Production-Ready LLM System with Advanced RAG, Training, and Deployment</i></p>
 </div>
